@@ -1,5 +1,10 @@
 const app = document.getElementById('app')
-const homeLink = document.getElementById('homeLink')
+const description = document.querySelector('meta[name="description"]')
+const homeDescription = description.content
+
+function escapeText(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char])
+}
 
 function formatDate(iso) {
   const date = new Date(iso + 'T00:00:00')
@@ -29,21 +34,21 @@ function renderHome() {
   const cards = all
     .map(
       (post) => `
-        <article class="post-card" data-id="${post.id}" tabindex="0" role="link">
+        <a class="post-card" href="#post/${post.id}" aria-labelledby="post-title-${post.id}">
           <p class="post-meta">
-            <span class="post-author">${post.author}</span>
+            <span class="post-author">${escapeText(post.author)}</span>
             <span class="dot">&middot;</span>
             <time datetime="${post.date}">${formatDate(post.date)}</time>
           </p>
-          <h2 class="post-card-title">${post.title}</h2>
-          <p class="post-excerpt">${post.excerpt}</p>
+          <h2 class="post-card-title" id="post-title-${post.id}">${escapeText(post.title)}</h2>
+          <p class="post-excerpt">${escapeText(post.excerpt)}</p>
           <span class="read-link">Read the full post</span>
-        </article>`,
+        </a>`,
     )
     .join('')
 
   app.innerHTML = `
-    <p class="section-label">Latest writing</p>
+    <h1 class="section-label">Latest writing</h1>
     <div class="post-list">${cards}</div>`
 }
 
@@ -51,19 +56,22 @@ function renderPost(id) {
   const post = posts.find((p) => p.id === id)
 
   if (!post) {
-    renderHome()
+    document.title = 'Post not found | Second Wind'
+    app.innerHTML = '<h1>Post not found</h1><p>This article link is unavailable.</p><a class="back-link" href="#">Back to all posts</a>'
     return
   }
 
-  const paragraphs = post.body.map((text) => `<p>${text}</p>`).join('')
+  document.title = `${post.title} | Second Wind`
+  description.content = post.excerpt
+  const paragraphs = post.body.map((text) => `<p>${escapeText(text)}</p>`).join('')
 
   app.innerHTML = `
     <a class="back-link" href="#" data-home>&larr; Back to all posts</a>
     <article class="article">
       <header class="article-head">
-        <h1 class="article-title">${post.title}</h1>
+        <h1 class="article-title">${escapeText(post.title)}</h1>
         <p class="post-meta">
-          <span class="post-author">${post.author}</span>
+          <span class="post-author">${escapeText(post.author)}</span>
           <span class="dot">&middot;</span>
           <time datetime="${post.date}">${formatDate(post.date)}</time>
         </p>
@@ -75,31 +83,17 @@ function renderPost(id) {
   window.scrollTo(0, 0)
 }
 
-app.addEventListener('click', (event) => {
-  const backTrigger = event.target.closest('[data-home]')
-  if (backTrigger) {
-    event.preventDefault()
-    renderHome()
-    return
+function renderRoute(moveFocus = false) {
+  document.title = 'Second Wind'
+  description.content = homeDescription
+  const match = /^#post\/([1-9]\d*)$/.exec(window.location.hash)
+  if (window.location.hash && window.location.hash !== '#') renderPost(match ? Number(match[1]) : NaN)
+  else renderHome()
+  if (moveFocus) {
+    app.focus({ preventScroll: true })
+    window.scrollTo(0, 0)
   }
+}
 
-  const card = event.target.closest('.post-card')
-  if (card) {
-    renderPost(Number(card.dataset.id))
-  }
-})
-
-app.addEventListener('keydown', (event) => {
-  if (event.key !== 'Enter') return
-  const card = event.target.closest('.post-card')
-  if (card) {
-    renderPost(Number(card.dataset.id))
-  }
-})
-
-homeLink.addEventListener('click', (event) => {
-  event.preventDefault()
-  renderHome()
-})
-
-renderHome()
+window.addEventListener('hashchange', () => renderRoute(true))
+renderRoute()
