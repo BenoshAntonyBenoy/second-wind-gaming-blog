@@ -9,7 +9,9 @@ no build step, no dependencies. Open `index.html` in a browser and it works.
 - Each card shows the title, author, date, and a short excerpt
 - Clicking a card opens the full article without reloading the page
 - A "Back to all posts" link returns to the home view
-- Navigation runs entirely in JavaScript, so the page never reloads
+- Each article has a bookmarkable `#post/ID` URL; reloads and browser Back/Forward keep the correct view
+- Cards are native links, with keyboard focus indicators and open-in-new-tab support
+- Article titles/descriptions update in the browser; social crawlers still see the static page shell
 - Shows a friendly message if there are no posts
 
 ## Running it
@@ -23,6 +25,8 @@ python -m http.server 8000
 ```
 
 Then visit http://localhost:8000.
+
+Run `node --test` for navigation regression checks (Node 20+). These also run on pull requests. Unknown article URLs display a clear recovery link without silently showing a different article.
 
 ## Files
 

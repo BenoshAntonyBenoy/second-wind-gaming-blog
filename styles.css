@@ -129,6 +129,9 @@ body {
 }
 
 .post-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -144,7 +147,16 @@ body {
   transform: translateY(-3px);
   border-color: #41454f;
   box-shadow: var(--shadow);
-  outline: none;
+}
+
+.post-card:focus-visible, .back-link:focus-visible, .brand:focus-visible {
+  outline: 3px solid #f0a9b3;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-card { transition: none; }
+  .post-card:hover, .post-card:focus-visible { transform: none; }
 }
 
 .post-meta {
